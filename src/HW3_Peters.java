@@ -1,4 +1,4 @@
-//package HW3_Peters;
+
 
 import javafx.application.Application;
 import javafx.collections.FXCollections;
@@ -27,11 +27,12 @@ public class HW3_Peters extends Application {
     // Item array list
     static ArrayList<Item> itemArrayList;
 
-    /// Item observable list
-    static ObservableList<Item> itemObservableList;
+    // Item observable list
+    // NEW OBSERVABLE LIST OBJECTS FOR DIFFERENT SCENES
+    static ObservableList<Item> itemSaleObservableList,itemDeleteObservableList,itemModifyObservableList;
 
     // Item ComboBox
-    static ComboBox<Item> itemComBox;
+    static ComboBox<Item> itemSaleComboBox,itemDeleteComboBox,itemModifyComboBox;
 
     // Scenes
     Scene addItemScene,deleteItemScene,modifyItemScene,dataAltScene,saleScene,mainScene;
@@ -90,11 +91,6 @@ public class HW3_Peters extends Application {
         // Initializing itemComBox from file input
         Initializing();
 
-        // Create itemComBox node
-        TilePane itemSaleComBoxTilePane = new TilePane(itemComBox);
-
-        TilePane itemAltComBoxTilePane = new TilePane(itemComBox);
-
         // Add scene
         // Create add item scene title
         Label addItemAltSceneTitle = new Label(ADD_ITEM_TITLE);
@@ -135,7 +131,7 @@ public class HW3_Peters extends Application {
         // Create delete item scene title
         Label deleteItemAltSceneTitle = new Label(DELETE_ITEM_TITLE);
 
-        // Select code from itemComBoxTilePane
+        // Select code from itemDeleteComboBox
 
         // Preview item from comboBox in title/field HBox nodes
         itemAltCodeTitle = new Label(ITEM_NAME_TITLE);
@@ -161,7 +157,7 @@ public class HW3_Peters extends Application {
         HBox deleteButtonHB = new HBox(deleteItemButton,deleteDoneButton);
 
         // Create delete item node
-        VBox deleteItemVB = new VBox(deleteItemAltSceneTitle,itemAltComBoxTilePane,itemAltTitleFieldVB,deleteButtonHB);
+        VBox deleteItemVB = new VBox(deleteItemAltSceneTitle,itemDeleteComboBox,itemAltTitleFieldVB,deleteButtonHB);
 
         // Style nodes
 
@@ -173,7 +169,7 @@ public class HW3_Peters extends Application {
         // Create modify item scene title
         Label modifyItemAltSceneTitle = new Label(MODIFY_ITEM_TITLE);
 
-        // Select code from itemComBoxTilePane
+        // Select code from itemModifyComboBox
 
         // Preview/modify item fields
         itemAltCodeTitle = new Label(ITEM_NAME_TITLE);
@@ -199,7 +195,7 @@ public class HW3_Peters extends Application {
         HBox modifyButtonHB = new HBox(modifyItemButton,modifyDoneButton);
 
         // Create modify item node
-        VBox modifyItemVB = new VBox(modifyItemAltSceneTitle,itemAltComBoxTilePane,itemAltTitleFieldVB,modifyButtonHB);
+        VBox modifyItemVB = new VBox(modifyItemAltSceneTitle,itemModifyComboBox,itemAltTitleFieldVB,modifyButtonHB);
 
         // Style nodes
 
@@ -233,7 +229,7 @@ public class HW3_Peters extends Application {
 
         // sale scene
 
-        // Select item from itemComBoxTilePane
+        // Select item from itemSaleComboBox
 
         // Create item title HBox nodes
         Label itemSaleCodeTitle = new Label(ITEM_NAME_TITLE);
@@ -268,7 +264,7 @@ public class HW3_Peters extends Application {
 
         // Create sale node
         BorderPane saleTopBP = new BorderPane();
-        saleTopBP.setTop(itemSaleComBoxTilePane);
+        saleTopBP.setTop(itemSaleComboBox);
         saleTopBP.setCenter(itemSaleTitleFieldVB);
         saleTopBP.setBottom(addButton);
 
@@ -347,7 +343,7 @@ public class HW3_Peters extends Application {
     }
 
     private static void updateItemList() {
-        // Update itemObservableList and itemComBox
+        // Update itemObservableList and itemComboBoxes
     }
 
     private static void Initializing() {
@@ -390,9 +386,18 @@ public class HW3_Peters extends Application {
             }
         }
         // initialize itemObservableList
-        itemObservableList = FXCollections.observableList(itemArrayList);
+        itemSaleObservableList = FXCollections.observableList(itemArrayList);
+	itemDeleteObservableList = FXCollections.observableList(itemArrayList);
+	itemModifyObservableList = FXCollections.observableList(itemArrayList);
 
-        // initialize itemComBox
-        itemComBox = new ComboBox<>(itemObservableList);
+        // initialize item ComboBoxes
+//        itemComBox = new ComboBox<>(itemObservableList);
+	// NEW ITEM COMBO BOXES
+	itemSaleComboBox = new ComboBox<>(itemSaleObservableList);
+	itemDeleteComboBox = new ComboBox<>(itemDeleteObservableList);
+	itemModifyComboBox = new ComboBox<>(itemModifyObservableList);
+
+	// CHECK IF NEED TO SET UP LISTENER EVENT FOR UPDATING
+
     }
 }
