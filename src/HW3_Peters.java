@@ -51,10 +51,11 @@ public class HW3_Peters extends Application {
 
                 ADD_BUTTON_TITLE    = "Add",
                 DONE_BUTTON_TITLE   = "Done",
+		SALE_BUTTON_TITLE   = "Sale",
 
                 ITEM_NAME_TITLE     = "Item Name :",
                 ITEM_PRICE_TITLE    = "Item Price :",
-                ITEM_QUANTITY_TITLE = "Quantity :",
+                ITEM_QUANTITY_TITLE = "Set Quantity :",
                 ITEM_TOTAL_TITLE    = "Item total :",
 
                 ITEM_NAME_FIELD_DEFAULT = "NA",
@@ -113,9 +114,9 @@ public class HW3_Peters extends Application {
 
         // Create Add/Done buttons and button HBox
         Button addItemButton = new Button(ADD_ITEM_BUTTON_TITLE);
-        // ADD ITEM HANDLER
+        addItemButton.setOnAction(e -> checkAddItem());
         Button addDoneButton = new Button(DONE_BUTTON_TITLE);
-        addDoneButton.setOnAction(event -> primaryStage.setScene(dataAltScene));
+        addDoneButton.setOnAction(e -> primaryStage.setScene(dataAltScene));
         HBox addButtonHB = new HBox(addItemButton,addDoneButton);
 
         // Create add item node
@@ -149,11 +150,18 @@ public class HW3_Peters extends Application {
         // Create item TF VBox
         itemAltTitleFieldVB = new VBox(itemAltCodeHB,itemAltNameHB,itemAltPriceHB);
 
+//	// Create update event for delete field nodes
+//	itemDeleteComboBox.setOnAction(e -> {
+//		itemAltCodeField.setText(itemDeleteComboBox.getValue().getItemCode());
+//		itemAltNameField.setText(itemDeleteComboBox.getValue().getItemName());
+//		itemAltPriceField.setText(itemDeleteComboBox.getValue().getItemPriceString());
+//	});
+
         // Create Delete/Done buttons and button HBox
         Button deleteItemButton = new Button(DELETE_ITEM_BUTTON_TITLE);
-        // DELETE ITEM HANDLER
+        deleteItemButton.setOnAction(e -> checkDeleteItem());
         Button deleteDoneButton = new Button(DONE_BUTTON_TITLE);
-        deleteDoneButton.setOnAction(event -> primaryStage.setScene(dataAltScene));
+        deleteDoneButton.setOnAction(e -> primaryStage.setScene(dataAltScene));
         HBox deleteButtonHB = new HBox(deleteItemButton,deleteDoneButton);
 
         // Create delete item node
@@ -187,11 +195,18 @@ public class HW3_Peters extends Application {
         // Create item TF VBox
         itemAltTitleFieldVB = new VBox(itemAltCodeHB,itemAltNameHB,itemAltPriceHB);
 
+//	// Create update event for modify field nodes
+//	itemModifyComboBox.setOnAction(e -> {
+//		itemAltCodeField.setText(itemModifyComboBox.getValue().getItemCode());
+//		itemAltNameField.setText(itemModifyComboBox.getValue().getItemName());
+//		itemAltPriceField.setText(itemModifyComboBox.getValue().getItemPriceString());
+//	});
+
         // Create Modify/Done buttons and button HBox
         Button modifyItemButton = new Button(MOD_ITEM_BUTTON_TITLE);
-        // MODIFY ITEM HANDLER
+	modifyItemButton.setOnAction(e -> checkModifyItem());
         Button modifyDoneButton = new Button(DONE_BUTTON_TITLE);
-        modifyDoneButton.setOnAction(event -> primaryStage.setScene(dataAltScene));
+        modifyDoneButton.setOnAction(e -> primaryStage.setScene(dataAltScene));
         HBox modifyButtonHB = new HBox(modifyItemButton,modifyDoneButton);
 
         // Create modify item node
@@ -210,16 +225,20 @@ public class HW3_Peters extends Application {
         Button dataAltAddItemButton = new Button(ADD_ITEM_BUTTON_TITLE);
         dataAltAddItemButton.setOnAction(e -> primaryStage.setScene(addItemScene));
         Button dataAltDeleteItemButton = new Button(DELETE_ITEM_BUTTON_TITLE);
-        dataAltDeleteItemButton.setOnAction(event -> primaryStage.setScene(deleteItemScene));
+        dataAltDeleteItemButton.setOnAction(e -> primaryStage.setScene(deleteItemScene));
         Button dataAltModItemButton = new Button(MOD_ITEM_BUTTON_TITLE);
-        dataAltModItemButton.setOnAction(event -> primaryStage.setScene(modifyItemScene));
+        dataAltModItemButton.setOnAction(e -> primaryStage.setScene(modifyItemScene));
         HBox dataAltButtonHB = new HBox(dataAltAddItemButton,dataAltDeleteItemButton,dataAltModItemButton);
 
-        // Create done button node
-        Button quitButton = new Button(QUIT_BUTTON_TITLE);
+        // Create Done/Quit button node
+	Button saleAltButton = new Button(SALE_BUTTON_TITLE);
+	saleAltButton.setOnAction(e -> primaryStage.setScene(saleScene));
+        Button quitAltButton = new Button(QUIT_BUTTON_TITLE);
+	quitAltButton.setOnAction(e -> System.exit(0));
+	HBox dataAltDoneQuitButtonHB = new HBox(saleAltButton,quitAltButton);
 
         // Create dataAlt node
-        VBox dataAltVB = new VBox(dataAltLabel,dataAltButtonHB,quitButton);
+        VBox dataAltVB = new VBox(dataAltLabel,dataAltButtonHB,dataAltDoneQuitButtonHB);
 
         // Style nodes
 
@@ -231,7 +250,7 @@ public class HW3_Peters extends Application {
 
         // Select item from itemSaleComboBox
 
-        // Create item title HBox nodes
+        // Create item title/field HBox nodes
         Label itemSaleCodeTitle = new Label(ITEM_NAME_TITLE);
         TextField itemSaleCodeField = new TextField();
         HBox itemSaleCodeHB = new HBox(itemSaleCodeTitle,itemSaleCodeField);
@@ -252,10 +271,10 @@ public class HW3_Peters extends Application {
         VBox itemSaleTitleFieldVB = new VBox(itemSaleCodeHB,itemSaleNameHB,itemSalePriceHB,itemSaleQuantityHB);
 
         // Create update event for sale field nodes
-        itemComBox.setOnAction(event -> {
-            itemSaleCodeField.setText(itemComBox.getValue().getItemCode());
-            itemSaleNameField.setText(itemComBox.getValue().getItemName());
-            itemSalePriceField.setText(itemComBox.getValue().getItemPriceString());
+        itemSaleComboBox.setOnAction(e -> {
+            itemSaleCodeField.setText(itemSaleComboBox.getValue().getItemCode());
+            itemSaleNameField.setText(itemSaleComboBox.getValue().getItemName());
+            itemSalePriceField.setText(itemSaleComboBox.getValue().getItemPriceString());
         });
 
         // Create add button to top of sale
@@ -272,28 +291,30 @@ public class HW3_Peters extends Application {
         // Create receipt Label node
         TextField receiptTextField = new TextField(RECEIPT_TEXTFIELD);
 
-        // Create subtotal title VBox and nodes
-        Label subtotalLabel = new Label(SUBTOTAL_TITLE);
-        Label subtotalTaxLabel = new Label(SUBTOTAL_TAX_TITLE);
-        Label tenderLabel = new Label(TENDER_TITLE);
-        Label changeLabel = new Label(CHANGE_TITLE);
-        VBox subtotalTitleVB = new VBox(subtotalLabel,subtotalTaxLabel,tenderLabel,changeLabel);
+	// Create subtotal title/field HBox nodes
+	Label subtotalTitle = new Label(SUBTOTAL_TITLE);
+	TextField subtotalField = new TextField(SUBTOTAL_FIELD_DEFAULT);
+	HBox subtotalHB = new HBox(subtotalTitle,subtotalField);
 
-        // Create subtotal field VBox and nodes
-        Label subtotalFieldLabel = new Label(SUBTOTAL_FIELD_DEFAULT);
-        Label subtotalTaxFieldLabel = new Label(SUBTOTAL_TAX_FIELD_DEFAULT);
-        TextField tenderTF = new TextField();
-        Label changeFieldLabel = new Label(CHANGE_FIELD_DEFAULT);
-        VBox subtotalFieldVB = new VBox(subtotalFieldLabel,subtotalTaxFieldLabel,tenderTF,changeFieldLabel);
+	Label subtotalTaxTitle = new Label(SUBTOTAL_TAX_TITLE);
+	TextField subtotalTaxField = new TextField(SUBTOTAL_TAX_FIELD_DEFAULT);
+	HBox subtotalTaxHB = new HBox(subtotalTaxTitle,subtotalTaxField);
 
-        // Create subtotal HBox
-        HBox subtotalHB = new HBox(subtotalTitleVB,subtotalFieldVB);
+	Label tenderTitle = new Label(TENDER_TITLE);
+	TextField tenderTF = new TextField();
+	HBox tenderHB = new HBox(tenderTitle,tenderTF);
+
+	Label changeTitle = new Label(CHANGE_TITLE);
+	TextField changeField = new TextField(CHANGE_FIELD_DEFAULT);
+	HBox changeHB = new HBox(changeTitle,changeField);
 
         // Create checkout button node
         Button checkoutButton = new Button(CHECKOUT_BUTTON_TITLE);
 
+	VBox subtotalVB = new VBox(subtotalHB,subtotalTaxHB,tenderHB,checkoutButton,changeHB);
+
         // Create checkoutVBox
-        VBox checkoutVB = new VBox(receiptTextField,subtotalHB,checkoutButton);
+        VBox checkoutVB = new VBox(receiptTextField,subtotalVB);
 
         // Create bottom button Hbox
         Button doneButton = new Button(DONE_BUTTON_TITLE);
@@ -310,7 +331,6 @@ public class HW3_Peters extends Application {
         // Create then set SaleScene
         saleScene = new Scene(saleBP);
 
-
         // Main scene
         // Create main screen scene nodes
         Label mainTitleLabel = new Label("Welcome to Peter's store!!!");
@@ -321,16 +341,13 @@ public class HW3_Peters extends Application {
         Label eodTotalLabel = new Label(EOD_TOTAL_TITLE + eodTotalPrice);
 
         // Create main node
-        BorderPane mainBP = new BorderPane();
-        mainBP.setTop(mainTitleLabel);
-        mainBP.setCenter(newSaleButton);
-        mainBP.setBottom(eodTotalLabel);
+	VBox mainVB = new VBox(mainTitleLabel,newSaleButton,eodTotalLabel);
 
         // Style nodes
+	mainVB.setSpacing(25);
 
         // Create then set mainScene
-        mainScene = new Scene(mainBP);
-
+        mainScene = new Scene(mainVB);
 
         // Set title and scene then show stage
         primaryStage.setTitle(MAIN_TITLE);
@@ -383,8 +400,9 @@ public class HW3_Peters extends Application {
             } catch (Exception exception) {
                 // File input failed
                 exception.printStackTrace();
-            }
+	    }
         }
+
         // initialize itemObservableList
         itemSaleObservableList = FXCollections.observableList(itemArrayList);
 	itemDeleteObservableList = FXCollections.observableList(itemArrayList);
@@ -398,6 +416,56 @@ public class HW3_Peters extends Application {
 	itemModifyComboBox = new ComboBox<>(itemModifyObservableList);
 
 	// CHECK IF NEED TO SET UP LISTENER EVENT FOR UPDATING
-
     }
+
+	// Return true if valid, false if invalid
+	private static boolean checkAddItem(String codeInput, String nameInput, String priceInput) {
+		// Check if input is valid
+		try {
+			if ((codeInput.matches("[AB]\\d\\d\\d")) && (Double.parseDouble(userInput) > 0)) {
+				// input valid
+				return true;
+
+				// Add item to itemArrayList
+				
+			} else {
+				// input invalid
+				return false;
+			};
+
+		}
+		catch (Exception e) {
+			// input invalid
+			return false;
+		}
+	}
+
+	// Return true if valid, false if invalid
+	private static boolean checkDeleteItem(String codeInput) {
+		// Check if input is valid
+		try {
+			if ((codeInput.matches("[AB]\\d\\d\\d"))) {
+				// input valid
+				return true;
+
+				// Remove item from itemArrayList
+				
+			} else {
+				// input invalid
+				return false;
+			};
+
+		}
+		catch (Exception e) {
+			// input invalid
+			return false;
+		}
+	}
+
+	// Return true if valid, false if invalid
+	private static boolean checkModifyItem() {
+		// Check if input is valid
+		// Change values in itemArrayList
+		return true;
+	}
 }
