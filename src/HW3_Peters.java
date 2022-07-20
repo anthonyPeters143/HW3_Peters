@@ -1,50 +1,97 @@
+// Homework 3: Cash Register Program
+// Course: CIS357
+// Due date: 7/20/22
+// Name: Anthony Peters
+// Instructor: Il-Hyung Cho
+// Program description: HW3_Peters is a driver program that runs a GUI program meant to be used to drive a POS system
+// for a store. Includes Sale, SaleItemTracker, and Item classes that are used to hold data and operate with the GUI
+// program.
 
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
-
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
+/**
+ * @author Anthony Peters
+ *
+ * Driver class to create a GUI to drive Sale class using Items. GUI will allow the user to choose from a comboBox of
+ * all items then enter an amount for the quanitiy then added the Item and amount to the Sale object and recipt
+ * Textfield. While adding items to sale, price are added to the subtotal fields. Will prompt for tender and then calc.
+ * and return change amount. After/Before a sale can use the dataAlt section to choose between adding, deleting, and
+ * modifing the item list.
+ */
 public class HW3_Peters extends Application {
-    // Item array list
-    static ArrayList<Item> itemArrayList;
+    /**
+     * ArrayList to store Item objects
+     */
+    private static ArrayList<Item> itemArrayList;
 
-    // Sale object
-    static Sale sale;
+    /**
+     * Sale object
+     */
+    private static Sale sale;
 
-    // Item observable list
-    // NEW OBSERVABLE LIST OBJECTS FOR DIFFERENT SCENES
-    static ObservableList<Item> itemSaleObservableList,itemDeleteObservableList,itemModifyObservableList;
+    /**
+     * ObservableLists of Items
+     */
+    private static ObservableList<Item> itemSaleObservableList,itemDeleteObservableList,itemModifyObservableList;
 
-    // Item ComboBox
-    static ComboBox<Item> itemSaleComboBox,itemDeleteComboBox,itemModifyComboBox;
+    /**
+     * Item ComboBox
+     */
+    private static ComboBox<Item> itemSaleComboBox,itemDeleteComboBox,itemModifyComboBox;
 
-    // Scenes
-    Scene addItemScene,deleteItemScene,modifyItemScene,dataAltScene,saleScene,mainScene;
+    /**
+     * Scenes
+     */
+    private Scene addItemScene,deleteItemScene,modifyItemScene,dataAltScene,saleScene,mainScene;
 
-    // Keys
-    static String   FILE_NAME_KEY   = "item.txt",
-                    MAIN_STYLE      = "MainStyle.css";
+    /**
+     * Keys
+     */
+    private static String FILE_NAME_KEY   = "item.txt";
 
-    // Listener update fields
-    static String itemAltCodeInput,itemAltNameInput,itemAltPriceInput,itemSaleCodeInput,itemSaleNameInput,
+    /**
+     * Listener update fields
+     */
+    private static String itemAltAddCodeInput,itemAltAddNameInput,itemAltAddPriceInput,
+            itemAltModifyCodeInput,itemAltModifyNameInput,itemAltModifyPriceInput,
+            itemSaleCodeInput,itemSaleNameInput,
             itemSalePriceInput,itemSaleQuantityInput,subtotalInput,subtotalTaxInput,tenderInput,
             RECEIPT_TEXT = "";
+    private double eodTotalPrice = 0;
+
+    /**
+     * Formatting vars
+     */
+    private final Font titleFont = new Font("Lucida Sans Unicode",30),
+        bodyFont = new Font("Lucida Sans Unicode",15),
+        buttonFont = new Font("Lucida Sans Unicode",15),
+        receiptFont = new Font("Lucida Sans Unicode",10);
+    private final int sceneSpace = 13;
+
+    /**
+     * Format for currency
+     */
+    private static final DecimalFormat currencyFormat = new DecimalFormat("#,###.00");
 
     @Override
     public void start(Stage primaryStage) throws IOException {
@@ -63,10 +110,6 @@ public class HW3_Peters extends Application {
                 ITEM_QUANTITY_TITLE = "Set Quantity :",
                 ITEM_TOTAL_TITLE    = "Item total :",
 
-                ITEM_NAME_FIELD_DEFAULT = "NA",
-                ITEM_PRICE_FIELD_DEFAULT = "0.00",
-                ITEM_TOTAL_FIELD_DEFAULT = "0.00",
-
                 SUBTOTAL_TITLE          = "Sale Subtotal :",
                 SUBTOTAL_TAX_TITLE      = "Sale Tax Subtotal (6%) :",
                 TENDER_TITLE            = "Tendered Amount :",
@@ -79,6 +122,7 @@ public class HW3_Peters extends Application {
                 CHECKOUT_BUTTON_TITLE   = "Checkout",
 
                 DATA_ALT_TITLE          = "Data alteration",
+                ITEM_SALE_TITLE         = "Item Sale",
 
                 ADD_ITEM_BUTTON_TITLE   = "Add Item",
                 DELETE_ITEM_BUTTON_TITLE= "Delete Item",
@@ -89,50 +133,65 @@ public class HW3_Peters extends Application {
                 DELETE_ITEM_TITLE = "Delete Item",
                 MODIFY_ITEM_TITLE = "Modify Item";
 
-        String WELCOME_MESSAGE = "\nWelcome to Peter's cash register system!\n";
-
-
-        double eodTotalPrice = 0;
+        int RECEIPT_WIDTH = 120, RECEIPT_HEIGHT = 100;
 
         // Initializing itemComBox from file input
         Initializing();
 
-        // NEED TO RECREATE FOR EACH DATA_ALT SECTION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        // Create dataAlt add title/field VBox node
+        Label itemAltAddCodeTitle = new Label(ITEM_NAME_TITLE);
+        TextField itemAltAddCodeField = new TextField();
+        itemAltAddCodeField.textProperty().addListener((observable, oldValue, newValue) -> itemAltAddCodeInput = newValue);
+        HBox itemAltAddCodeHB = new HBox(itemAltAddCodeTitle,itemAltAddCodeField);
+        itemAltAddCodeTitle.setFont(bodyFont);
+        itemAltAddCodeField.setFont(bodyFont);
+        itemAltAddCodeHB.setSpacing(sceneSpace);
+        itemAltAddCodeHB.setAlignment(Pos.CENTER);
 
-        // Create shared dataAlt title/field VBox node
-        Label itemAltCodeTitle = new Label(ITEM_NAME_TITLE);
-        TextField itemAltCodeField = new TextField();
-        itemAltCodeField.textProperty().addListener((observable, oldValue, newValue) -> itemAltCodeInput = newValue);
-        HBox itemAltCodeHB = new HBox(itemAltCodeTitle,itemAltCodeField);
+        Label itemAltAddNameTitle = new Label(ITEM_PRICE_TITLE);
+        TextField itemAltAddNameField = new TextField();
+        itemAltAddNameField.textProperty().addListener((observable, oldValue, newValue) -> itemAltAddNameInput = newValue);
+        HBox itemAltAddNameHB = new HBox(itemAltAddNameTitle,itemAltAddNameField);
+        itemAltAddNameTitle.setFont(bodyFont);
+        itemAltAddNameField.setFont(bodyFont);
+        itemAltAddNameHB.setSpacing(sceneSpace);
+        itemAltAddNameHB.setAlignment(Pos.CENTER);
 
-        Label itemAltNameTitle = new Label(ITEM_PRICE_TITLE);
-        TextField itemAltNameField = new TextField();
-        itemAltNameField.textProperty().addListener((observable, oldValue, newValue) -> itemAltNameInput = newValue);
-        HBox itemAltNameHB = new HBox(itemAltNameTitle,itemAltNameField);
+        Label itemAltAddPriceTitle = new Label(ITEM_TOTAL_TITLE);
+        TextField itemAltAddPriceField = new TextField();
+        itemAltAddPriceField.textProperty().addListener((observable, oldValue, newValue) -> itemAltAddPriceInput = newValue);
+        HBox itemAltAddPriceHB = new HBox(itemAltAddPriceTitle,itemAltAddPriceField);
+        itemAltAddPriceTitle.setFont(bodyFont);
+        itemAltAddPriceField.setFont(bodyFont);
+        itemAltAddPriceHB.setSpacing(sceneSpace);
+        itemAltAddPriceHB.setAlignment(Pos.CENTER);
 
-        Label itemAltPriceTitle = new Label(ITEM_TOTAL_TITLE);
-        TextField itemAltPriceField = new TextField();
-        itemAltPriceField.textProperty().addListener((observable, oldValue, newValue) -> itemAltPriceInput = newValue);
-        HBox itemAltPriceHB = new HBox(itemAltPriceTitle,itemAltPriceField);
+        // Create add item TF VBox
+        VBox itemAltAddTitleFieldVB = new VBox(itemAltAddCodeHB,itemAltAddNameHB,itemAltAddPriceHB);
+        itemAltAddTitleFieldVB.setSpacing(sceneSpace);
+        itemAltAddTitleFieldVB.setAlignment(Pos.CENTER);
 
-        // Create item TF VBox
-        VBox itemAltTitleFieldVB = new VBox(itemAltCodeHB,itemAltNameHB,itemAltPriceHB);
 
         // Add scene
         // Create add item scene title
         Label addItemAltSceneTitle = new Label(ADD_ITEM_TITLE);
+        addItemAltSceneTitle.setFont(titleFont);
 
         // Create Add/Done buttons and button HBox
         Button addItemButton = new Button(ADD_ITEM_BUTTON_TITLE);
-        addItemButton.setOnAction(e -> { checkAddItem(itemAltCodeInput,itemAltNameInput,itemAltPriceInput); });
+        addItemButton.setOnAction(e -> { checkAddItem(itemAltAddCodeInput,itemAltAddNameInput,itemAltAddPriceInput); });
         Button addDoneButton = new Button(DONE_BUTTON_TITLE);
         addDoneButton.setOnAction(e -> primaryStage.setScene(dataAltScene));
         HBox addButtonHB = new HBox(addItemButton,addDoneButton);
+        addItemButton.setFont(buttonFont);
+        addDoneButton.setFont(buttonFont);
+        addButtonHB.setSpacing(sceneSpace);
+        addButtonHB.setAlignment(Pos.CENTER);
 
         // Create add item node using add scene title, shared dataAlt VBox, and add button HBox
-        VBox addItemVB = new VBox(addItemAltSceneTitle,itemAltTitleFieldVB,addButtonHB);
-
-        // Style nodes
+        VBox addItemVB = new VBox(addItemAltSceneTitle,itemAltAddTitleFieldVB,addButtonHB);
+        addItemVB.setSpacing(sceneSpace);
+        addItemVB.setAlignment(Pos.CENTER);
 
         // Create scene
         addItemScene = new Scene(addItemVB);
@@ -141,54 +200,129 @@ public class HW3_Peters extends Application {
         // Delete scene
         // Create delete item scene title
         Label deleteItemAltSceneTitle = new Label(DELETE_ITEM_TITLE);
+        deleteItemAltSceneTitle.setFont(titleFont);
+
+        // Create dataAlt delete title/field VBox node
+        Label itemAltDeleteCodeTitle = new Label(ITEM_NAME_TITLE);
+        TextField itemAltDeleteCodeField = new TextField();
+        HBox itemAltDeleteCodeHB = new HBox(itemAltDeleteCodeTitle,itemAltDeleteCodeField);
+        itemAltDeleteCodeTitle.setFont(bodyFont);
+        itemAltDeleteCodeField.setFont(bodyFont);
+        itemAltDeleteCodeHB.setSpacing(sceneSpace);
+        itemAltDeleteCodeHB.setAlignment(Pos.CENTER);
+
+        Label itemAltDeleteNameTitle = new Label(ITEM_PRICE_TITLE);
+        TextField itemAltDeleteNameField = new TextField();
+        HBox itemAltDeleteNameHB = new HBox(itemAltDeleteNameTitle,itemAltDeleteNameField);
+        itemAltDeleteNameTitle.setFont(bodyFont);
+        itemAltDeleteNameField.setFont(bodyFont);
+        itemAltDeleteNameHB.setSpacing(sceneSpace);
+        itemAltDeleteNameHB.setAlignment(Pos.CENTER);
+
+        Label itemAltDeletePriceTitle = new Label(ITEM_TOTAL_TITLE);
+        TextField itemAltDeletePriceField = new TextField();
+        HBox itemAltDeletePriceHB = new HBox(itemAltDeletePriceTitle,itemAltDeletePriceField);
+        itemAltDeletePriceTitle.setFont(bodyFont);
+        itemAltDeletePriceField.setFont(bodyFont);
+        itemAltDeletePriceHB.setSpacing(sceneSpace);
+        itemAltDeletePriceHB.setAlignment(Pos.CENTER);
+
+        // Create add item TF VBox
+        VBox itemAltDeleteTitleFieldVB = new VBox(itemAltDeleteCodeHB,itemAltDeleteNameHB,itemAltDeletePriceHB);
+        itemAltDeleteTitleFieldVB.setSpacing(sceneSpace);
+        itemAltDeleteTitleFieldVB.setAlignment(Pos.CENTER);
 
         // Create update event for delete field nodes
         itemDeleteComboBox.setOnAction(e -> {
-            itemAltCodeField.setText(itemDeleteComboBox.getValue().getItemCode());
-            itemAltNameField.setText(itemDeleteComboBox.getValue().getItemName());
-            itemAltPriceField.setText(itemDeleteComboBox.getValue().getItemPriceString());
+            itemAltDeleteCodeField.setText(itemDeleteComboBox.getValue().getItemCode());
+            itemAltDeleteNameField.setText(itemDeleteComboBox.getValue().getItemName());
+            itemAltDeletePriceField.setText(currencyFormat.format(itemDeleteComboBox.getValue().getItemPrice()));
         });
+        itemDeleteComboBox.getEditor().setFont(bodyFont);
 
         // Create Delete/Done buttons and button HBox
         Button deleteItemButton = new Button(DELETE_ITEM_BUTTON_TITLE);
-        deleteItemButton.setOnAction(e -> checkDeleteItem(itemAltCodeInput));
+        deleteItemButton.setOnAction(e -> checkDeleteItem(itemDeleteComboBox.getValue().getItemCode()));
         Button deleteDoneButton = new Button(DONE_BUTTON_TITLE);
         deleteDoneButton.setOnAction(e -> primaryStage.setScene(dataAltScene));
         HBox deleteButtonHB = new HBox(deleteItemButton,deleteDoneButton);
+        deleteItemButton.setFont(buttonFont);
+        deleteDoneButton.setFont(buttonFont);
+        deleteButtonHB.setSpacing(sceneSpace);
+        deleteButtonHB.setAlignment(Pos.CENTER);
 
         // Create delete item node using delete scene title, deleteComboBox, shared dataAlt VBox, and delete button HBox
-        VBox deleteItemVB = new VBox(deleteItemAltSceneTitle,itemDeleteComboBox,itemAltTitleFieldVB,deleteButtonHB);
-
-        // Style nodes
+        VBox deleteItemVB = new VBox(deleteItemAltSceneTitle,itemDeleteComboBox,itemAltDeleteTitleFieldVB,deleteButtonHB);
+        deleteItemVB.setSpacing(sceneSpace);
+        deleteItemVB.setAlignment(Pos.CENTER);
 
         // Create scene
         deleteItemScene = new Scene(deleteItemVB);
 
+        // Modify Scene
+        // Create dataAlt modify title/field VBox node
+        Label itemAltModifyCodeTitle = new Label(ITEM_NAME_TITLE);
+        TextField itemAltModifyCodeField = new TextField();
+        itemAltModifyCodeField.textProperty().addListener((observable, oldValue, newValue) -> itemAltModifyCodeInput = newValue);
+        HBox itemAltModifyCodeHB = new HBox(itemAltModifyCodeTitle,itemAltModifyCodeField);
+        itemAltModifyCodeTitle.setFont(bodyFont);
+        itemAltModifyCodeField.setFont(bodyFont);
+        itemAltModifyCodeHB.setSpacing(sceneSpace);
+        itemAltModifyCodeHB.setAlignment(Pos.CENTER);
+
+        Label itemAltModifyNameTitle = new Label(ITEM_PRICE_TITLE);
+        TextField itemAltModifyNameField = new TextField();
+        itemAltModifyNameField.textProperty().addListener((observable, oldValue, newValue) -> itemAltModifyNameInput = newValue);
+        HBox itemAltModifyNameHB = new HBox(itemAltModifyNameTitle,itemAltModifyNameField);
+        itemAltModifyNameTitle.setFont(bodyFont);
+        itemAltModifyNameField.setFont(bodyFont);
+        itemAltModifyNameHB.setSpacing(sceneSpace);
+        itemAltModifyNameHB.setAlignment(Pos.CENTER);
+
+        Label itemAltModifyPriceTitle = new Label(ITEM_TOTAL_TITLE);
+        TextField itemAltModifyPriceField = new TextField();
+        itemAltModifyPriceField.textProperty().addListener((observable, oldValue, newValue) -> itemAltModifyPriceInput = newValue);
+        HBox itemAltModifyPriceHB = new HBox(itemAltModifyPriceTitle,itemAltModifyPriceField);
+        itemAltModifyPriceTitle.setFont(bodyFont);
+        itemAltModifyPriceField.setFont(bodyFont);
+        itemAltModifyPriceHB.setSpacing(sceneSpace);
+        itemAltModifyPriceHB.setAlignment(Pos.CENTER);
+
+        // Create add item TF VBox
+        VBox itemAltModifyTitleFieldVB = new VBox(itemAltModifyCodeHB,itemAltModifyNameHB,itemAltModifyPriceHB);
+        itemAltModifyTitleFieldVB.setSpacing(sceneSpace);
+        itemAltModifyTitleFieldVB.setAlignment(Pos.CENTER);
 
         // Modify scene
         // Create modify item scene title
         Label modifyItemAltSceneTitle = new Label(MODIFY_ITEM_TITLE);
+        modifyItemAltSceneTitle.setFont(titleFont);
 
         // Select code from itemModifyComboBox
 
         // Create update event for modify field nodes
         itemModifyComboBox.setOnAction(e -> {
-            itemAltCodeField.setText(itemModifyComboBox.getValue().getItemCode());
-            itemAltNameField.setText(itemModifyComboBox.getValue().getItemName());
-            itemAltPriceField.setText(itemModifyComboBox.getValue().getItemPriceString());
+            itemAltModifyCodeField.setText(itemModifyComboBox.getValue().getItemCode());
+            itemAltModifyNameField.setText(itemModifyComboBox.getValue().getItemName());
+            itemAltModifyPriceField.setText(currencyFormat.format(itemModifyComboBox.getValue().getItemPrice()));
         });
+        itemModifyComboBox.getEditor().setFont(bodyFont);
 
         // Create Modify/Done buttons and button HBox
         Button modifyItemButton = new Button(MOD_ITEM_BUTTON_TITLE);
-	    modifyItemButton.setOnAction(e -> checkModifyItem(itemAltCodeInput,itemAltNameInput,itemAltPriceInput));
+	    modifyItemButton.setOnAction(e -> checkModifyItem(itemAltModifyCodeInput,itemAltModifyNameInput,itemAltModifyPriceInput));
         Button modifyDoneButton = new Button(DONE_BUTTON_TITLE);
         modifyDoneButton.setOnAction(e -> primaryStage.setScene(dataAltScene));
         HBox modifyButtonHB = new HBox(modifyItemButton,modifyDoneButton);
+        modifyItemButton.setFont(buttonFont);
+        modifyDoneButton.setFont(buttonFont);
+        modifyButtonHB.setSpacing(sceneSpace);
+        modifyButtonHB.setAlignment(Pos.CENTER);
 
         // Create modify item node using modify scene title, modifyComboBox, shared dataAlt VBox, and modify button HBox
-        VBox modifyItemVB = new VBox(modifyItemAltSceneTitle,itemModifyComboBox,itemAltTitleFieldVB,modifyButtonHB);
-
-        // Style nodes
+        VBox modifyItemVB = new VBox(modifyItemAltSceneTitle,itemModifyComboBox,itemAltModifyTitleFieldVB,modifyButtonHB);
+        modifyItemVB.setSpacing(sceneSpace);
+        modifyItemVB.setAlignment(Pos.CENTER);
 
         // Create scene
         modifyItemScene = new Scene(modifyItemVB);
@@ -196,33 +330,40 @@ public class HW3_Peters extends Application {
         // dataAlt scene
         // Create dataAlt title node
         Label dataAltLabel = new Label(DATA_ALT_TITLE);
+        dataAltLabel.setFont(titleFont);
 
         // Create dataAlt button nodes
         Button dataAltAddItemButton = new Button(ADD_ITEM_BUTTON_TITLE);
         dataAltAddItemButton.setOnAction(e -> {
             // Resetting shared input fields in scene
-            itemAltCodeField.setText(TYPE_HERE_DEFAULT);
-            itemAltNameField.setText(TYPE_HERE_DEFAULT);
-            itemAltPriceField.setText(TYPE_HERE_DEFAULT);
+            itemAltAddCodeField.setText(TYPE_HERE_DEFAULT);
+            itemAltAddNameField.setText(TYPE_HERE_DEFAULT);
+            itemAltAddPriceField.setText(TYPE_HERE_DEFAULT);
             primaryStage.setScene(addItemScene);
         });
         Button dataAltDeleteItemButton = new Button(DELETE_ITEM_BUTTON_TITLE);
         dataAltDeleteItemButton.setOnAction(e -> {
             // Resetting shared input fields in scene
-            itemAltCodeField.setText("");
-            itemAltNameField.setText("");
-            itemAltPriceField.setText("");
+            itemAltDeleteCodeField.setText("");
+            itemAltDeleteNameField.setText("");
+            itemAltDeletePriceField.setText("");
             primaryStage.setScene(deleteItemScene);
         });
         Button dataAltModItemButton = new Button(MOD_ITEM_BUTTON_TITLE);
         dataAltModItemButton.setOnAction(e -> {
             // Resetting shared input fields in scene
-            itemAltCodeField.setText("");
-            itemAltNameField.setText("");
-            itemAltPriceField.setText("");
+            itemAltModifyCodeField.setText("");
+            itemAltModifyNameField.setText("");
+            itemAltModifyPriceField.setText("");
             primaryStage.setScene(modifyItemScene);
         });
         HBox dataAltButtonHB = new HBox(dataAltAddItemButton,dataAltDeleteItemButton,dataAltModItemButton);
+        dataAltAddItemButton.setFont(buttonFont);
+        dataAltDeleteItemButton.setFont(buttonFont);
+        dataAltModItemButton.setFont(buttonFont);
+        dataAltButtonHB.setSpacing(sceneSpace);
+        dataAltButtonHB.setAlignment(Pos.CENTER);
+
 
         // Create Done/Quit button node
 	    Button saleAltButton = new Button(SALE_BUTTON_TITLE);
@@ -230,17 +371,25 @@ public class HW3_Peters extends Application {
         Button quitAltButton = new Button(QUIT_BUTTON_TITLE);
 	    quitAltButton.setOnAction(e -> System.exit(0));
 	    HBox dataAltDoneQuitButtonHB = new HBox(saleAltButton,quitAltButton);
+        saleAltButton.setFont(buttonFont);
+        quitAltButton.setFont(buttonFont);
+        dataAltDoneQuitButtonHB.setSpacing(sceneSpace);
+        dataAltDoneQuitButtonHB.setAlignment(Pos.CENTER);
+
 
         // Create dataAlt node
         VBox dataAltVB = new VBox(dataAltLabel,dataAltButtonHB,dataAltDoneQuitButtonHB);
-
-        // Style nodes
+        dataAltVB.setSpacing(sceneSpace);
+        dataAltVB.setAlignment(Pos.CENTER);
 
         // Create scene
         dataAltScene = new Scene(dataAltVB);
 
 
         // sale scene
+        // Create sale title
+        Label itemSaleTitle = new Label(ITEM_SALE_TITLE);
+        itemSaleTitle.setFont(titleFont);
 
         // Select item from itemSaleComboBox
 
@@ -249,113 +398,148 @@ public class HW3_Peters extends Application {
         TextField itemSaleCodeField = new TextField();
         itemSaleCodeField.textProperty().addListener((observable, oldValue, newValue) -> itemSaleCodeInput = newValue);
         HBox itemSaleCodeHB = new HBox(itemSaleCodeTitle,itemSaleCodeField);
+        itemSaleCodeTitle.setFont(bodyFont);
+        itemSaleCodeField.setFont(bodyFont);
+        itemSaleCodeHB.setSpacing(sceneSpace);
+        itemSaleCodeHB.setAlignment(Pos.CENTER);
 
         Label itemSaleNameTitle = new Label(ITEM_PRICE_TITLE);
         TextField itemSaleNameField = new TextField();
         itemSaleNameField.textProperty().addListener((observable, oldValue, newValue) -> itemSaleNameInput = newValue);
         HBox itemSaleNameHB = new HBox(itemSaleNameTitle,itemSaleNameField);
+        itemSaleNameTitle.setFont(bodyFont);
+        itemSaleNameField.setFont(bodyFont);
+        itemSaleNameHB.setSpacing(sceneSpace);
+        itemSaleNameHB.setAlignment(Pos.CENTER);
 
         Label itemSalePriceTitle = new Label(ITEM_TOTAL_TITLE);
         TextField itemSalePriceField = new TextField();
         itemSalePriceField.textProperty().addListener((observable, oldValue, newValue) -> itemSalePriceInput = newValue);
         HBox itemSalePriceHB = new HBox(itemSalePriceTitle,itemSalePriceField);
+        itemSalePriceTitle.setFont(bodyFont);
+        itemSalePriceField.setFont(bodyFont);
+        itemSalePriceHB.setSpacing(sceneSpace);
+        itemSalePriceHB.setAlignment(Pos.CENTER);
 
         Label itemSaleQuantityTitle = new Label(ITEM_QUANTITY_TITLE);
         TextField itemSaleQuantityField = new TextField();
         itemSaleQuantityField.textProperty().addListener((observable, oldValue, newValue) -> itemSaleQuantityInput = newValue);
         HBox itemSaleQuantityHB = new HBox(itemSaleQuantityTitle,itemSaleQuantityField);
+        itemSaleQuantityTitle.setFont(bodyFont);
+        itemSaleQuantityField.setFont(bodyFont);
+        itemSaleQuantityHB.setSpacing(sceneSpace);
+        itemSaleQuantityHB.setAlignment(Pos.CENTER);
+
 
         // Create item TF VBox
         VBox itemSaleTitleFieldVB = new VBox(itemSaleCodeHB,itemSaleNameHB,itemSalePriceHB,itemSaleQuantityHB);
+        itemSaleTitleFieldVB.setSpacing(sceneSpace);
+        itemSaleTitleFieldVB.setAlignment(Pos.CENTER);
+
 
         // Create update event for sale field nodes
         itemSaleComboBox.setOnAction(e -> {
             itemSaleCodeField.setText(itemSaleComboBox.getValue().getItemCode());
             itemSaleNameField.setText(itemSaleComboBox.getValue().getItemName());
-            itemSalePriceField.setText(itemSaleComboBox.getValue().getItemPriceString());
+            itemSalePriceField.setText(currencyFormat.format(itemSaleComboBox.getValue().getItemPrice()));
         });
+        itemSaleComboBox.getEditor().setFont(bodyFont);
 
         // Create add button to top of sale
         Button addButton = new Button(ADD_BUTTON_TITLE);
-//        addButton.setOnAction(event -> {
-//            if () {
-//
-//            }
-//            else {
-//
-//            }
-//        });
+        addButton.setOnAction(event -> addSaleItem(itemSaleCodeInput,itemSaleQuantityInput));
+        addButton.setFont(buttonFont);
 
         // Create sale node
-        BorderPane saleTopBP = new BorderPane();
-        saleTopBP.setTop(itemSaleComboBox);
-        saleTopBP.setCenter(itemSaleTitleFieldVB);
-        saleTopBP.setBottom(addButton);
+        VBox saleTopVB = new VBox(itemSaleTitle,itemSaleComboBox,itemSaleTitleFieldVB,addButton);
+        saleTopVB.setSpacing(sceneSpace);
+        saleTopVB.setAlignment(Pos.CENTER);
 
         // Create middle checkout Vbox
         // Create receipt Label node
         TextField receiptTextField = new TextField(RECEIPT_TEXT);
-
-        // Add listener to text to update when RECEIPT_TEXT is changed
+        receiptTextField.setMinSize(RECEIPT_WIDTH,RECEIPT_HEIGHT);
+        receiptTextField.setFont(receiptFont);
 
         // Create subtotal title/field HBox nodes
         Label subtotalTitle = new Label(SUBTOTAL_TITLE);
         TextField subtotalField = new TextField(SUBTOTAL_FIELD_DEFAULT);
         subtotalField.textProperty().addListener((observable, oldValue, newValue) -> subtotalInput = newValue);
         HBox subtotalHB = new HBox(subtotalTitle,subtotalField);
+        subtotalTitle.setFont(bodyFont);
+        subtotalField.setFont(bodyFont);
+        subtotalHB.setSpacing(sceneSpace);
+        subtotalHB.setAlignment(Pos.CENTER);
 
         Label subtotalTaxTitle = new Label(SUBTOTAL_TAX_TITLE);
         TextField subtotalTaxField = new TextField(SUBTOTAL_TAX_FIELD_DEFAULT);
         subtotalTaxField.textProperty().addListener((observable, oldValue, newValue) -> subtotalTaxInput = newValue);
         HBox subtotalTaxHB = new HBox(subtotalTaxTitle,subtotalTaxField);
+        subtotalTaxTitle.setFont(bodyFont);
+        subtotalTaxField.setFont(bodyFont);
+        subtotalTaxHB.setSpacing(sceneSpace);
+        subtotalTaxHB.setAlignment(Pos.CENTER);
 
         Label tenderTitle = new Label(TENDER_TITLE);
         TextField tenderTF = new TextField();
         tenderTF.textProperty().addListener((observable, oldValue, newValue) -> tenderInput = newValue);
         HBox tenderHB = new HBox(tenderTitle,tenderTF);
+        tenderTitle.setFont(bodyFont);
+        tenderTF.setFont(bodyFont);
+        tenderHB.setSpacing(sceneSpace);
+        tenderHB.setAlignment(Pos.CENTER);
 
         Label changeTitle = new Label(CHANGE_TITLE);
         TextField changeField = new TextField(CHANGE_FIELD_DEFAULT);
 	    HBox changeHB = new HBox(changeTitle,changeField);
+        changeTitle.setFont(bodyFont);
+        changeField.setFont(bodyFont);
+        changeHB.setSpacing(sceneSpace);
+        changeHB.setAlignment(Pos.CENTER);
 
         // Create checkout button node
         Button checkoutButton = new Button(CHECKOUT_BUTTON_TITLE);
+        checkoutButton.setFont(buttonFont);
 
         // Create subtotal VBox
 	    VBox subtotalVB = new VBox(subtotalHB,subtotalTaxHB,tenderHB,checkoutButton,changeHB);
+        subtotalVB.setSpacing(sceneSpace);
+        subtotalVB.setAlignment(Pos.CENTER);
 
         // Create checkout VBox
         VBox checkoutVB = new VBox(receiptTextField,subtotalVB);
+        checkoutVB.setSpacing(sceneSpace);
+        checkoutVB.setAlignment(Pos.CENTER);
 
         // Create bottom button HBox
         Button doneButton = new Button(DONE_BUTTON_TITLE);
         doneButton.setOnAction(e -> primaryStage.setScene(dataAltScene));
+        doneButton.setFont(buttonFont);
 
         // Create sale border pane
-        BorderPane saleBP = new BorderPane();
-        saleBP.setTop(saleTopBP);
-        saleBP.setCenter(checkoutVB);
-        saleBP.setBottom(doneButton);
-
-        // Style nodes
+        VBox saleVB = new VBox(saleTopVB,checkoutVB,doneButton);
+        saleVB.setSpacing(sceneSpace);
+        saleVB.setAlignment(Pos.CENTER);
 
         // Create then set SaleScene
-        saleScene = new Scene(saleBP);
+        saleScene = new Scene(saleVB);
 
         // Main scene
         // Create main screen scene nodes
         Label mainTitleLabel = new Label("Welcome to Peter's store!!!");
+        mainTitleLabel.setFont(titleFont);
 
         Button newSaleButton = new Button("New Sale");
         newSaleButton.setOnAction(e -> primaryStage.setScene(saleScene));
+        newSaleButton.setFont(buttonFont);
 
-        Label eodTotalLabel = new Label(EOD_TOTAL_TITLE + eodTotalPrice);
+        Label eodTotalLabel = new Label(EOD_TOTAL_TITLE + currencyFormat.format(eodTotalPrice));
+        eodTotalLabel.setFont(bodyFont);
 
         // Create main node
 	    VBox mainVB = new VBox(mainTitleLabel,newSaleButton,eodTotalLabel);
-
-        // Style nodes
-	    mainVB.setSpacing(25);
+        mainVB.setSpacing(sceneSpace);
+        mainVB.setAlignment(Pos.CENTER);
 
         // Create then set mainScene
         mainScene = new Scene(mainVB);
@@ -366,14 +550,16 @@ public class HW3_Peters extends Application {
         primaryStage.show();
     }
 
+    /**
+     * Start GUI
+     */
     public static void main(String[] args) {
         launch();
     }
 
-    private static void updateItemList() {
-        // Update itemObservableList and itemComboBoxes
-    }
-
+    /**
+     * Initialize itemObservableList, ComboBoxes, Sale objects, arrayList and import items from fileRef to arrayList
+     */
     private static void Initializing() {
         {
             File fileRef;
@@ -427,57 +613,16 @@ public class HW3_Peters extends Application {
         itemSaleComboBox = new ComboBox<>(itemSaleObservableList);
         itemDeleteComboBox = new ComboBox<>(itemDeleteObservableList);
         itemModifyComboBox = new ComboBox<>(itemModifyObservableList);
-
-        // Create starting recpit text
-
-
-        // CHECK IF NEED TO SET UP LISTENER EVENT FOR UPDATING
     }
 
-    private static boolean addSaleItem(String codeInput, String priceInput, String quantityInput) {
-        String
-                FILENAME_MESSAGE                    = "\nInput file : ",
-                FILE_INPUT_ERROR_MESSAGE            = "!!! Invalid input",
-                BEGINNING_SALE_MESSAGE              = "\nBeginning a new sale? (Y/N) ",
-                SALE_INPUT_ERROR_MESSAGE            = "!!! Invalid input\nShould be (Y/N)",
-                CODE_INPUT_INCORRECT_MESSAGE        = "!!! Invalid product code\nShould be A[###] or B[###], 0000 = item list, -1 = quit\n",
-                QUANTITY_INPUT_INCORRECT_MESSAGE    = "!!! Invalid quantity\nShould be [1-100]",
-                BREAK_LINE                          = "--------------------",
-                ENTER_CODE_MESSAGE                  = "\nEnter product code : ",
-                ITEM_NAME_MESSAGE                   = "         item name : ",
-                ENTER_QUANTITY_MESSAGE              = "\n\tEnter quantity : ",
-                ITEM_TOTAL_MESSAGE                  = "        item total : $",
-                RECEIPT_LINE                        = "\n----------------------------\n",
-                RECEIPT_TOP                         = "Items list:\n",
-                TENDERED_AMOUNT_RECEIPT             = "\nTendered amount\t\t\t $ ",
-                TENDER_AMOUNT_WRONG                 = "\nAmount entered is invalid",
-                TENDER_AMOUNT_TOO_SMALL             = "\nAmount entered is too small",
-                CHANGE_AMOUNT                       = "Change\t\t\t\t\t $",
-                EOD_MESSAGE                         = "\nThe total sale for the day is  $",
-
-                UPDATE_PROMPT_MESSAGE               = "\nDo you want to update the items data? (A/D/M/Q): ",
-                UPDATE_ERROR_MESSAGE                = "!!! Invalid input\nShould be (A/D/M/Q)",
-                UPDATE_CODE_PROMPT                  = "item code: ",
-                UPDATE_NAME_PROMPT                  = "item name: ",
-                UPDATE_PRICE_PROMPT                 = "item price: ",
-
-                UPDATE_ITEM_ALREADY_ADDED           = "!!! item already created",
-                UPDATE_ITEM_NOT_FOUND               = "!!! item not found",
-
-
-                UPDATE_CODE_ERROR_MESSAGE           = "!!! Invalid input\nShould be A[###] or B[###]\n",
-                UPDATE_NAME_ERROR_MESSAGE           = "!!! Invalid input\nName shouldn't be only digits\n",
-
-                UPDATE_NAME_OLD_MESSAGE             = "!!! Invalid input\nName already used\n",
-
-                UPDATE_PRICE_ERROR_MESSAGE          = "!!! Invalid input\nShould be greater than 0\n",
-
-                UPDATE_ADD_SUCCESSFUL               = "Item add successful!\n",
-                UPDATE_DELETE_SUCCESSFUL            = "Item delete successful!\n",
-                UPDATE_MODIFY_SUCCESSFUL            = "Item modify successful!\n",
-
-                THANK_YOU                           = "Thanks for using POST system. Goodbye.";
-
+    /**
+     * Handler method for adding item and quantity to Sale object. If inputs are valid then return true amd add item to
+     * Sale object, if inputs are invalid then return false.
+     *
+     * @param codeInput String, item code
+     * @param quantityInput String, quantity of item
+     */
+    private static boolean addSaleItem(String codeInput, String quantityInput) {
         try {
             // Convert priceInput into an Integer
             int quantityInputInt = Integer.parseInt(quantityInput);
@@ -491,11 +636,6 @@ public class HW3_Peters extends Application {
                     return false;
 
                 } else {
-                    // Code input valid
-
-                    // Item found
-                    // Output Item name message + item name from itemArray
-                    System.out.print(ITEM_NAME_MESSAGE + inputItem.getItemName());
 
                     // Calc price
                     BigDecimal itemPriceBD = BigDecimal.valueOf(inputItem.getItemPrice());
@@ -504,8 +644,7 @@ public class HW3_Peters extends Application {
                     // Add Item price to Sale object
                     sale.addSaleItem(inputItem,quantityInputInt,(itemPriceBD.multiply(itemQuantityBD).doubleValue()));
 
-                    // Add text to
-//                    RECEIPT_TEXT = RECEIPT_TEXT.concat()
+                    // Add text to RECEIPT_TEXT to display in sale scene within receipt text field node
                 }
             }
             } catch (Exception e){
@@ -518,7 +657,14 @@ public class HW3_Peters extends Application {
             return true;
     }
 
-	// Return true if valid, false if invalid
+    /**
+     * Handler method for adding item object to itemArrayList. If inputs are valid then return true and add item object
+     * to itemArrayList, if inputs are invalid then return false.
+     *
+     * @param codeInput String, item code
+     * @param nameInput String, item name
+     * @param priceInput String, item price
+     */
 	private static boolean checkAddItem(String codeInput, String nameInput, String priceInput) {
 		// Check if input is valid
 		try {
@@ -540,7 +686,12 @@ public class HW3_Peters extends Application {
 		}
 	}
 
-	// Return true if valid, false if invalid
+    /**
+     * Handler method for deleting item object to itemArrayList. If inputs are valid then return true and remove item
+     * object from itemArrayList, if inputs are invalid then return false.
+     *
+     * @param codeInput String, item code
+     */
 	private static boolean checkDeleteItem(String codeInput) {
 		// Check if input is valid
 		try {
@@ -562,7 +713,14 @@ public class HW3_Peters extends Application {
 		}
 	}
 
-	// Return true if valid, false if invalid
+    /**
+     * Handler method for modifying item object to itemArrayList. If inputs are valid then return true and remove old
+     * item object from itemArrayList and add new item object, if inputs are invalid then return false.
+     *
+     * @param codeInput String, item code
+     * @param nameInput String, item name
+     * @param priceInput String, item price
+     */
 	private static boolean checkModifyItem(String codeInput, String nameInput, String priceInput) {
         // Check if input is valid
         try {
